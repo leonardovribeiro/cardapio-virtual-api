@@ -1,8 +1,9 @@
-DROP DATABASE IF EXISTS cardapiovirtual;
+USE Cardapiovirtual;
 
-CREATE DATABASE cardapiovirtual;
-
-USE cardapiovirtual;
+SET character_set_client = utf8;
+SET character_set_connection = utf8;
+SET character_set_results = utf8;
+SET collation_connection = utf8_general_ci;
 
 CREATE TABLE cliente(
   	id INT NOT NULL AUTO_INCREMENT,
