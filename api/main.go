@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cardapio-virtual-api/src/config"
 	"fmt"
 	"log"
 	"net/http"
@@ -9,6 +10,8 @@ import (
 const port int = 3333
 
 func main() {
+
+	config.Load()
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, "Bem vindo!")
