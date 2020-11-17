@@ -5,11 +5,11 @@ SET character_set_connection = utf8;
 SET character_set_results = utf8;
 SET collation_connection = utf8_general_ci;
 
-CREATE TABLE cliente(
+CREATE TABLE customer(
   	id INT NOT NULL AUTO_INCREMENT,
-	documento VARCHAR(11) NOT NULL,
-  	mesa int NOT NULL,
-  	update_at TIMESTAMP,
+	document VARCHAR(11) NOT NULL,
+	first_connection DATE,
+  	last_connection TIMESTAMP,
   	PRIMARY KEY(id)
 );
 
@@ -22,14 +22,14 @@ CREATE TABLE estabelecimento(
 
 CREATE TABLE pedido(
 	id int NOT NULL AUTO_INCREMENT,
-  	cliente_id INT NOT NULL,
+  	customer_id INT NOT NULL,
   	estabelecimento_id INT NOT NULL,
   	total DECIMAL(8,2) NOT NULL,
   	observacoes VARCHAR(140),
   	status VARCHAR(20),
   	data DATE,
   	PRIMARY KEY (id),
-  	FOREIGN KEY (cliente_id) REFERENCES cliente(id),
+  	FOREIGN KEY (customer_id) REFERENCES customer(id),
   	FOREIGN KEY (estabelecimento_id) REFERENCES estabelecimento(id)
 );
 

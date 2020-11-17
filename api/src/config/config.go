@@ -18,7 +18,7 @@ var (
 )
 
 // Load vai inicializar as variáveis de ambiente
-func Load() {
+func Loader() {
 	var err error
 
 	err = godotenv.Load()
