@@ -17,8 +17,7 @@ func NewCustomersRepository(db *sql.DB) *Customers {
 
 // Create insere um novo cliente no banco de dados
 func (repository Customers) Create(customer models.Customer) (uint64, error) {
-	stmt, err := repository.db.Prepare(
-		"INSERT INTO customers(document, table, fist_connection) VALUES(?)")
+	stmt, err := repository.db.Prepare("INSERT INTO customer(document, e_table) VALUES(?,?);")
 
 	if err != nil {
 		return 0, err
@@ -26,10 +25,13 @@ func (repository Customers) Create(customer models.Customer) (uint64, error) {
 
 	defer stmt.Close()
 
-	result, err := stmt.Exec(customer.Document, customer.Table, customer.FirstConnection)
-
 	if err != nil {
-		return 0, nil
+		return 0, err
+	}
+
+	result, err := stmt.Exec(customer.Document, customer.Table)
+	if err != nil {
+		return 0, err
 	}
 
 	lastInsertID, err := result.LastInsertId()

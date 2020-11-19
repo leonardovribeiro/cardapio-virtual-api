@@ -4,10 +4,10 @@ import (
 	"cardapio-virtual-api/src/database"
 	"cardapio-virtual-api/src/models"
 	"cardapio-virtual-api/src/repositories"
+	"cardapio-virtual-api/src/responses"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 )
 
@@ -16,27 +16,38 @@ func CreateCustomer(w http.ResponseWriter, r *http.Request) {
 
 	requestBody, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		log.Fatal(err)
+		responses.Error(w, http.StatusUnprocessableEntity, err)
+		return
 	}
 
 	var customer models.Customer
 	err = json.Unmarshal(requestBody, &customer)
 	if err != nil {
-		log.Fatal(err)
+		responses.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	err = customer.Prepare()
+	if err != nil {
+		responses.Error(w, http.StatusBadRequest, err)
+		return
 	}
 
 	db, err := database.Connection()
 	if err != nil {
-		log.Fatal(err)
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
 	}
+	defer db.Close()
 
 	repository := repositories.NewCustomersRepository(db)
 	customerID, err := repository.Create(customer)
 	if err != nil {
-		log.Fatal(err)
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
 	}
 
-	w.Write([]byte(fmt.Sprintf("ID inserido: %d", customerID)))
+	responses.JSON(w, http.StatusCreated, customerID)
 
 }
 

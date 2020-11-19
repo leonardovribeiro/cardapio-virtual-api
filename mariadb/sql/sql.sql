@@ -7,9 +7,9 @@ SET collation_connection = utf8_general_ci;
 
 CREATE TABLE customer(
   	id INT NOT NULL AUTO_INCREMENT,
-	document VARCHAR(11) NOT NULL,
-	first_connection DATE,
-  	last_connection TIMESTAMP,
+	document VARCHAR(11) UNIQUE NOT NULL,
+	e_table INT NOT NULL,
+	update_at TIMESTAMP NOT NULL,
   	PRIMARY KEY(id)
 );
 
