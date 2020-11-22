@@ -9,6 +9,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
 // CreateCustomer insere um cliente no banco de dados
@@ -27,7 +30,7 @@ func CreateCustomer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = customer.Prepare()
+	err = customer.Prepare("login")
 	if err != nil {
 		responses.Error(w, http.StatusBadRequest, err)
 		return
@@ -58,12 +61,82 @@ func FindAllCustomer(w http.ResponseWriter, r *http.Request) {
 
 // FindCustomer busca um cliente no banco
 func FindCustomer(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte(fmt.Sprintf("Busca um cliente")))
+	param := mux.Vars(r)
+
+	var customer models.Customer
+	customer.Document = param["customerDoc"]
+
+	err := customer.Prepare("find")
+
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	db, err := database.Connection()
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repositories.NewCustomersRepository(db)
+	customer, err = repository.Find(customer.Document)
+
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	responses.JSON(w, http.StatusOK, customer)
+
 }
 
 // UpdateCustomer atualiza um cliente no banco
 func UpdateCustomer(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte(fmt.Sprintf("Atualiza um cliente")))
+	params := mux.Vars(r)
+	customerID, err := strconv.ParseUint(params["customerID"], 10, 64)
+	if err != nil {
+		responses.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	reqBody, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		responses.Error(w, http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	var customer models.Customer
+	err = json.Unmarshal(reqBody, &customer)
+	fmt.Println(customer)
+	if err != nil {
+		responses.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	err = customer.Prepare("update")
+	if err != nil {
+		responses.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	db, err := database.Connection()
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repositories.NewCustomersRepository(db)
+	err = repository.Update(customerID, customer)
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	responses.JSON(w, http.StatusNoContent, nil)
+
 }
 
 // DeleteCustomer deleta um cliente no banco

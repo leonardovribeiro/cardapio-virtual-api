@@ -8,15 +8,15 @@ import (
 
 // Customer representa um cliente
 type Customer struct {
-	ID       uint64    `json:"id,omitempty"`
-	Document string    `json:"cpf,omitempty"`
-	Table    uint8     `json:"table,omitempty"`
-	UpdateAt time.Time `json:"update_at,omitempty"`
+	ID       uint64     `json:"id,omitempty"`
+	Document string     `json:"cpf,omitempty"`
+	Table    uint8      `json:"table,omitempty"`
+	UpdateAt *time.Time `json:"update_at,omitempty"`
 }
 
 // Prepare vai chamar os métodos para validar e formatar o cliente recebido
-func (customer *Customer) Prepare() error {
-	err := customer.validator()
+func (customer *Customer) Prepare(step string) error {
+	err := customer.validator(step)
 	if err != nil {
 		return err
 	}
@@ -26,13 +26,9 @@ func (customer *Customer) Prepare() error {
 	return nil
 }
 
-func (customer *Customer) validator() error {
-	if customer.Document == "" {
+func (customer *Customer) validator(step string) error {
+	if ((step == "login") || (step == "find")) && customer.Document == "" {
 		return errors.New("O número do documento é obrigatório e não pode estar em branco")
-	}
-
-	if customer.Table == 0 {
-		return errors.New("O número da mesa é obrigatório e não pode estar em branco")
 	}
 
 	return nil

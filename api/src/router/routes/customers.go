@@ -19,7 +19,7 @@ var customersRoutes = []Route{
 		Auth:     false,
 	},
 	{
-		URI:      "/customers/{customerID}",
+		URI:      "/customers/{customerDoc}",
 		Method:   http.MethodGet,
 		Function: controllers.FindCustomer,
 		Auth:     false,
