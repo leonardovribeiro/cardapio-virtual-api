@@ -3,6 +3,7 @@ package repositories
 import (
 	"cardapio-virtual-api/src/models"
 	"database/sql"
+	"errors"
 )
 
 // Customers representa um repositório de clientes
@@ -68,15 +69,24 @@ func (repository Customers) Find(doc string) (models.Customer, error) {
 
 // Update altera as informações de um cliente no banco de dados
 func (repository Customers) Update(ID uint64, customer models.Customer) error {
-	stmt, err := repository.db.Prepare("UPDATE customer SET document = ?, e_table = ? where id = ? ")
+	stmt, err := repository.db.Prepare("UPDATE customer SET document = ?, e_table = ? where id = ?")
 	if err != nil {
 		return err
 	}
 	defer stmt.Close()
 
-	_, err = stmt.Exec(customer.Document, customer.Table, ID)
+	res, err := stmt.Exec(customer.Document, customer.Table, ID)
 	if err != nil {
 		return err
+	}
+
+	rowID, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowID == 0 {
+		return errors.New("Resquesed item is not found")
 	}
 
 	return nil

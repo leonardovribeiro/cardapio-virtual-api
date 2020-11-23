@@ -109,13 +109,14 @@ func UpdateCustomer(w http.ResponseWriter, r *http.Request) {
 
 	var customer models.Customer
 	err = json.Unmarshal(reqBody, &customer)
-	fmt.Println(customer)
+
 	if err != nil {
 		responses.Error(w, http.StatusBadRequest, err)
 		return
 	}
 
 	err = customer.Prepare("update")
+
 	if err != nil {
 		responses.Error(w, http.StatusBadRequest, err)
 		return
