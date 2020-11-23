@@ -30,7 +30,7 @@ func CreateCustomer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = customer.Prepare("login")
+	err = customer.Prepare("create")
 	if err != nil {
 		responses.Error(w, http.StatusBadRequest, err)
 		return
@@ -59,14 +59,11 @@ func FindAllCustomer(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(fmt.Sprintf("Busca todos os clientes")))
 }
 
-// FindCustomer busca um cliente no banco
+// FindCustomer busca um cliente no banco usando o id
 func FindCustomer(w http.ResponseWriter, r *http.Request) {
 	param := mux.Vars(r)
 
-	var customer models.Customer
-	customer.Document = param["customerDoc"]
-
-	err := customer.Prepare("find")
+	ID, err := strconv.ParseUint(param["id"], 10, 64)
 
 	if err != nil {
 		responses.Error(w, http.StatusInternalServerError, err)
@@ -80,8 +77,10 @@ func FindCustomer(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
+	var customer models.Customer
+
 	repository := repositories.NewCustomersRepository(db)
-	customer, err = repository.Find(customer.Document)
+	customer, err = repository.Find(ID)
 
 	if err != nil {
 		responses.Error(w, http.StatusInternalServerError, err)
@@ -94,6 +93,7 @@ func FindCustomer(w http.ResponseWriter, r *http.Request) {
 
 // UpdateCustomer atualiza um cliente no banco
 func UpdateCustomer(w http.ResponseWriter, r *http.Request) {
+
 	params := mux.Vars(r)
 	customerID, err := strconv.ParseUint(params["customerID"], 10, 64)
 	if err != nil {

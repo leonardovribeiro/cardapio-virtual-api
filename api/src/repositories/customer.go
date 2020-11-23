@@ -3,7 +3,7 @@ package repositories
 import (
 	"cardapio-virtual-api/src/models"
 	"database/sql"
-	"errors"
+	"fmt"
 )
 
 // Customers representa um repositório de clientes
@@ -18,17 +18,13 @@ func NewCustomersRepository(db *sql.DB) *Customers {
 
 // Create insere um novo cliente no banco de dados
 func (repository Customers) Create(customer models.Customer) (uint64, error) {
-	stmt, err := repository.db.Prepare("INSERT INTO customer(document, e_table) VALUES(?,?);")
 
+	fmt.Println(customer)
+	stmt, err := repository.db.Prepare("INSERT INTO customer(document, e_table) VALUES(?,?)")
 	if err != nil {
 		return 0, err
 	}
-
 	defer stmt.Close()
-
-	if err != nil {
-		return 0, err
-	}
 
 	result, err := stmt.Exec(customer.Document, customer.Table)
 	if err != nil {
@@ -44,8 +40,35 @@ func (repository Customers) Create(customer models.Customer) (uint64, error) {
 	return uint64(lastInsertID), nil
 }
 
-// Find traz um cliente do banco de dados usando o CPF para realizar a busca
-func (repository Customers) Find(doc string) (models.Customer, error) {
+// Find traz um cliente do banco de dados usando o id para realizar a busca
+func (repository Customers) Find(ID uint64) (models.Customer, error) {
+
+	var customer models.Customer
+
+	stmt, err := repository.db.Prepare("SELECT id, document, e_table, update_at FROM customer WHERE id = ?")
+	if err != nil {
+		return models.Customer{}, err
+	}
+	defer stmt.Close()
+
+	rows, err := stmt.Query(ID)
+	if err != nil {
+		return models.Customer{}, err
+	}
+
+	if rows.Next() {
+		err = rows.Scan(&customer.ID, &customer.Document, &customer.Table, &customer.UpdateAt)
+		if err != nil {
+			return models.Customer{}, err
+		}
+	}
+
+	return customer, nil
+}
+
+// FindByDoc traz um cliente do banco de dados usando o id para realizar a busca
+func (repository Customers) FindByDoc(doc string) (models.Customer, error) {
+
 	var customer models.Customer
 
 	stmt, err := repository.db.Prepare("SELECT id, document, e_table, update_at FROM customer WHERE document = ?")
@@ -54,14 +77,16 @@ func (repository Customers) Find(doc string) (models.Customer, error) {
 	}
 	defer stmt.Close()
 
-	err = stmt.QueryRow(doc).Scan(
-		&customer.ID,
-		&customer.Document,
-		&customer.Table,
-		&customer.UpdateAt,
-	)
+	rows, err := stmt.Query(doc)
 	if err != nil {
 		return models.Customer{}, err
+	}
+
+	if rows.Next() {
+		err = rows.Scan(&customer.ID, &customer.Document, &customer.Table, &customer.UpdateAt)
+		if err != nil {
+			return models.Customer{}, err
+		}
 	}
 
 	return customer, nil
@@ -75,18 +100,9 @@ func (repository Customers) Update(ID uint64, customer models.Customer) error {
 	}
 	defer stmt.Close()
 
-	res, err := stmt.Exec(customer.Document, customer.Table, ID)
+	_, err = stmt.Exec(customer.Document, customer.Table, ID)
 	if err != nil {
 		return err
-	}
-
-	rowID, err := res.RowsAffected()
-	if err != nil {
-		return err
-	}
-
-	if rowID == 0 {
-		return errors.New("Resquesed item is not found")
 	}
 
 	return nil

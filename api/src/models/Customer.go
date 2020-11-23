@@ -27,7 +27,7 @@ func (customer *Customer) Prepare(step string) error {
 }
 
 func (customer *Customer) validator(step string) error {
-	if ((step == "login") || (step == "find")) && customer.Document == "" {
+	if ((step == "create") || (step == "find")) && customer.Document == "" {
 		return errors.New("O número do documento é obrigatório e não pode estar em branco")
 	}
 
