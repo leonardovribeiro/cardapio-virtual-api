@@ -15,9 +15,12 @@ var (
 
 	// Port onde a api vai estar rodando
 	Port = 0
+
+	// SecretKey é a chave usada para assinar o token
+	SecretKey []byte
 )
 
-// Load vai inicializar as variáveis de ambiente
+// Loader vai inicializar as variáveis de ambiente
 func Loader() {
 	var err error
 
@@ -38,4 +41,6 @@ func Loader() {
 		os.Getenv("DB_PASSWORD"),
 		os.Getenv("DB_NAME"),
 	)
+
+	SecretKey = []byte(os.Getenv("SECRET_KEY"))
 }
