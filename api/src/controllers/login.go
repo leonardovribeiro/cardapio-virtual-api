@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"cardapio-virtual-api/src/authentication"
 	"cardapio-virtual-api/src/database"
 	"cardapio-virtual-api/src/models"
 	"cardapio-virtual-api/src/repositories"
@@ -37,7 +38,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 	defer db.Close()
 
 	repository := repositories.NewCustomersRepository(db)
-	customerFound, err := repository.FindByDoc(customer.Document)
+	customerFound, err := repository.GetByDoc(customer.Document)
 	if err != nil {
 		responses.Error(w, http.StatusInternalServerError, err)
 		return
@@ -57,5 +58,8 @@ func Login(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	responses.JSON(w, http.StatusOK, customerFound.ID)
+
+	token, _ := authentication.CreateToken(customerFound.ID)
+
+	responses.JSON(w, http.StatusOK, token)
 }
