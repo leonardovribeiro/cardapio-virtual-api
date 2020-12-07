@@ -6,7 +6,6 @@ import (
 	"cardapio-virtual-api/src/repositories"
 	"cardapio-virtual-api/src/responses"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strconv"
@@ -51,16 +50,28 @@ func CreateCustomer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	responses.JSON(w, http.StatusCreated, customerID)
-
 }
 
-// FindAllCustomer busca todos os clientes no banco
-func FindAllCustomer(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte(fmt.Sprintf("Busca todos os clientes")))
+// FetchCustomer busca todos os clientes no banco
+func FetchCustomer(w http.ResponseWriter, r *http.Request) {
+
+	db, err := database.Connection()
+	if err != nil {
+		responses.Error(w, http.StatusBadRequest, err)
+		return
+	}
+
+	repository := repositories.NewCustomersRepository(db)
+	customers, err := repository.Fetch()
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+	}
+
+	responses.JSON(w, http.StatusFound, customers)
 }
 
-// FindCustomer busca um cliente no banco usando o id
-func FindCustomer(w http.ResponseWriter, r *http.Request) {
+// GetCustomerByID busca um cliente no banco usando o id
+func GetCustomerByID(w http.ResponseWriter, r *http.Request) { // TODO: verificar se nenhum cliente foi encontrado
 	param := mux.Vars(r)
 
 	ID, err := strconv.ParseUint(param["id"], 10, 64)
@@ -80,7 +91,7 @@ func FindCustomer(w http.ResponseWriter, r *http.Request) {
 	var customer models.Customer
 
 	repository := repositories.NewCustomersRepository(db)
-	customer, err = repository.Find(ID)
+	customer, err = repository.GetByID(ID)
 
 	if err != nil {
 		responses.Error(w, http.StatusInternalServerError, err)
@@ -95,11 +106,22 @@ func FindCustomer(w http.ResponseWriter, r *http.Request) {
 func UpdateCustomer(w http.ResponseWriter, r *http.Request) {
 
 	params := mux.Vars(r)
-	customerID, err := strconv.ParseUint(params["customerID"], 10, 64)
+	customerID, err := strconv.ParseUint(params["id"], 10, 64)
 	if err != nil {
 		responses.Error(w, http.StatusBadRequest, err)
 		return
 	}
+
+	// customerIDToken, err := authentication.ExtractUserID(r)
+	// if err != nil {
+	// 	responses.Error(w, http.StatusUnauthorized, err)
+	// 	return
+	// }
+
+	// if customerID != customerIDToken {
+	// 	responses.Error(w, http.StatusForbidden, errors.New("Não é possível atualizar um usuário que não seja o seu"))
+	// 	return
+	// }
 
 	reqBody, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -142,5 +164,26 @@ func UpdateCustomer(w http.ResponseWriter, r *http.Request) {
 
 // DeleteCustomer deleta um cliente no banco
 func DeleteCustomer(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte(fmt.Sprintf("Deleta um cliente")))
+	params := mux.Vars(r)
+
+	customerID, err := strconv.ParseUint(params["id"], 10, 64)
+	if err != nil {
+		responses.Error(w, http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	db, err := database.Connection()
+	if err != nil {
+		responses.JSON(w, http.StatusBadRequest, err)
+		return
+	}
+	defer db.Close()
+
+	repository := repositories.NewCustomersRepository(db)
+	err = repository.Delete(customerID)
+	if err != nil {
+		responses.Error(w, http.StatusInternalServerError, err)
+	}
+
+	responses.JSON(w, http.StatusNoContent, nil)
 }
