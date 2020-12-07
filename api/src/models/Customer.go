@@ -8,10 +8,10 @@ import (
 
 // Customer representa um cliente
 type Customer struct {
-	ID       uint64     `json:"id,omitempty"`
-	Document string     `json:"cpf,omitempty"`
-	Table    uint8      `json:"table,omitempty"`
-	UpdateAt *time.Time `json:"update_at,omitempty"`
+	ID       uint64    `json:"id,omitempty"`
+	Document string    `json:"cpf,omitempty"`
+	Table    uint8     `json:"table,omitempty"`
+	UpdateAt time.Time `json:"update_at,omitempty"`
 }
 
 // Prepare vai chamar os métodos para validar e formatar o cliente recebido
